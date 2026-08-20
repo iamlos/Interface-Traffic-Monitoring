@@ -86,7 +86,7 @@ http://SERVER_IP:18080/
 
 ## 🗂️ فایل‌ها و پِرسیستنس
 
-NetDash یک مسیر داده را به‌ترتیب اولویت انتخاب می‌کند (اولین مسیر قابل‌نوشتن):
+NetDashSelects a data path in order of priority (first writable path):
 1. `/var/lib/netdash/`
 2. `~/.local/share/netdash/`
 3. `/tmp/netdash/`
@@ -127,7 +127,7 @@ sudo systemctl restart netdash
 
 ---
 
-## 🩺 عیب‌یابی
+## 🩺    Troubleshooting
 
 - **dnsmasq روی پورت 53 بالا نمی‌آید (port in use):**‌
   ```bash
