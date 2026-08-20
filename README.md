@@ -9,146 +9,235 @@ A lightweight, database-free, fully automated panel for **live network traffic m
 ---
 <img width="1256" height="616" alt="Screenshot (165)" src="https://github.com/user-attachments/assets/0ed26721-bd57-4613-926d-9666bbc4a912" />
 
-## ✨ قابلیت‌ها
+## ✨ قابلی
+<div align="center">
+  <strong><a href="README-EN.md">English</a></strong> | <strong><a href="README.md">فارسی</a></strong>
+</div>
+<br>
 
-- **داشبورد لحظه‌ای شبکه:** نمایش نرخ دانلود/آپلود هر اینترفیس + نمودارهای زنده
-- **مسدودسازی دامنه/IP/CIDR:** با یک کلیک؛ همراه **صفحهٔ هشدار کاربر** (HTTP 451) در حالت Page Mode
-- **محدودیت سرعت (Shaping):** اعمال سقف سرعت آپلود/دانلود برای هر اینترفیس از داخل پنل
-- **گزارش‌های روزانه/ماهانه:** حجم مصرفی تفکیک‌شده به تفکیک اینترفیس (Traffic usage)
-- **کنترل اینترفیس‌ها:** روشن/خاموش‌کردن کارت شبکه از داخل پنل
-- **پایش پینگ و کیفیت اینترنت:** محاسبهٔ میانگین، بیشینه، پرسنـتایل ۹۵٪ و نرخ Packet Loss
-- **نمایش ترافیک زنده بر اساس پورت:** از طریق conntrack (کرنل)
-- **رابط فارسی + مد تیره/روشن، موبایل‌فرندلی**
-- **بازسازی خودکار قوانین بعد از ری‌استارت** (iptables/ipset/dnsmasq)
-- **بدون دیتابیس**، نصب ساده روی لینوکس
+# NetDash — Real‑time Interface Traffic Monitoring
+
+**NetDash** is a lightweight, no‑database network dashboard. Watch live bandwidth per interface, block domains/IPs with one click (with an optional user‑facing block page), set upload/download limits, and view clean daily/monthly usage — all from a mobile‑friendly Persian UI (English content here, UI language is Persian by default).
 
 ---
 
-## 🚀 نصب سریع (یک‌خطی)
+## ✨ Features
 
-اسکریپت نصب تمام پیش‌نیازها را آماده، سرویس‌ها را تنظیم و برنامه را اجرا می‌کند:
+- **Live network dashboard**: see per‑interface rates, charts, and aggregates.
+- **One‑click block list** (domain or IP/CIDR) + **pretty block page** (HTTP only).
+- **Daily / monthly usage reports** (traffic accounting).
+- **Instant rate limiting** (upload/download) per interface.
+- **Interface control** (bring link up/down from the panel).
+- **Ping/quality monitor** with basic loss/latency chips.
+- **Dark/Light theme**, fully responsive mobile‑friendly UI.
+- **No database, minimal deps, auto‑restore rules after reboot.**
+- **Great fit** for VPN servers, routers, small offices/teams.
+
+> ⚠️ Firewall rules (ipset/iptables) are automatically created by NetDash when it starts. No manual firewall setup required.
+
+---
+
+## 🧩 Requirements
+
+- Linux (tested on **Ubuntu 22.04+**).
+- **Python 3.10+**
+- `iproute2` (for the `ip` command)
+- `dnsmasq`, `ipset`, `iptables` (installed by the script)
+- Flask (Ubuntu’s repo versions are fine)
+
+**Quick install (Ubuntu/Debian, OS packages only):**
+```bash
+sudo apt-get update
+sudo apt-get install -y python3 python3-flask iproute2
+```
+
+> If you previously installed incompatible Flask-related packages with `pip` (e.g., `itsdangerous` / `Werkzeug` mismatches), either stick to Ubuntu’s `apt` packages or remove old `pip` ones and reinstall a compatible set.
+
+---
+
+## 🚀 One‑line Installer (recommended)
+
+Run the interactive installer menu (install/update/manage/remove):
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/Free-Guy-IR/Interface-Traffic-Monitoring/main/netdash-install.sh)
 ```
 
-> اسکریپت در صورت نیاز **systemd-resolved** را غیرفعال و `/etc/resolv.conf` را به `127.0.0.1` تنظیم می‌کند و `dnsmasq` را راه‌اندازی می‌کند. قوانین فایروال توسط خود برنامه مدیریت می‌شود.
+**What the installer can do:**
+- Install or reinstall NetDash from GitHub.
+- Install required packages: `python3`, `pip`, `dnsmasq`, `ipset`, `iptables`, `curl`, etc.
+- Create/update a `systemd` service (`netdash.service`).
+- Optionally **disable `systemd-resolved`** and configure **`dnsmasq`** to bind port **53**.
+- Start/stop NetDash, view logs, fully remove, and more.
 
-پس از نصب، پنل روی این آدرس در دسترس است:
-
-```
-http://SERVER_IP:18080/
-```
-
----
-
-## 🔧 منوی مدیریت (اسکریپت)
-اسکریپت نصب یک منوی متنی ارائه می‌کند:
-1. **Install / Reinstall** – پیش‌نیازها + دانلود کد + ساخت سرویس systemd
-2. **Update from GitHub** – بروز‌رسانی سورس برنامه
-3. **Edit .env** – ویرایش تنظیمات محیطی در `/etc/netdash.env`
-4. **View Live Logs** – مشاهدهٔ لاگ زندهٔ سرویس
-5. **Stop** / **6. Start** – مدیریت سرویس
-7. **Remove Completely** – حذف کامل سرویس و فایل‌ها
-8. **Status** – وضعیت سرویس
+> The installer also handles most conflicts automatically (e.g., port 53 in use). See **Troubleshooting** below.
 
 ---
 
-## ⚙️ تنظیمات محیطی (ENV)
+## 📦 Manual Run (without the menu)
 
-فایل تنظیمات در مسیر `/etc/netdash.env` ذخیره می‌شود. مهم‌ترین متغیرها:
-
-| متغیر | پیش‌فرض | توضیح |
-|---|---|---|
-| `NETDASH_PORT` | `18080` | پورت پنل وب |
-| `NETDASH_BLOCK_PORT` | `18081` | پورت صفحهٔ هشدار HTTP |
-| `NETDASH_TOKEN` | خالی | اگر ست شود، باید هدر `X-Auth-Token` برای عملیات مدیریتی ارسال شود |
-| `NETDASH_MAX_POINTS` | `120` | حداکثر نقاط هر نمودار |
-| `NETDASH_IPSET_MODE` | `1` | استفاده از `dnsmasq + ipset` برای بلاک دامنه‌ها |
-| `NETDASH_SNI_BLOCK` | `1` | افزودن قوانین SNI برای TLS/443 |
-| `NETDASH_PAGE_MODE` | `1` | ریدایرکت HTTP به صفحهٔ مسدودسازی (پورت Block) |
-| `NETDASH_SNI_LEARN` | `1` | یادگیری IPهای مقصد از SNI و افزودن به ipset |
-| `NETDASH_SNI_IFACES` | خالی | لیست اینترفیس‌ها برای SNI Learner، جدا با کاما (اختیاری) |
-| `NETDASH_ENFORCE_DNS` | `1` | ریدایرکت DNS کلاینت‌ها به DNS لوکال (iptables nat) |
-| `NETDASH_BLOCK_DOT` | `0` | بلاک DoT/DoQ (پورت‌های 853/TCP و 8853/UDP) |
-| `NETDASH_PRELOAD_META` | `0` | پیش‌بارگذاری چند دامنهٔ پیش‌فرض برای بلاک |
-| `NETDASH_AUTO_PIP` | `1` | نصب خودکار `scapy` در صورت نیاز |
-| `NETDASH_PORTS_MONITOR` | `1` | فعال‌سازی مانیتور پورت‌ها (conntrack) |
-| `NETDASH_PORTS_INTERVAL` | `1.0` | بازهٔ نمونه‌برداری مانیتور پورت‌ها (ثانیه) |
-| `NETDASH_PING_TARGETS` | `1.1.1.1,8.8.8.8,9.9.9.9` | لیست مقصدهای پینگ |
-| `NETDASH_PING_INTERVAL` | `5.0` | فاصلهٔ پینگ‌ها (ثانیه) |
-| `NETDASH_PING_WINDOW` | `50` | اندازهٔ پنجرهٔ محاسبهٔ آمار پینگ |
-
-> فهرست کامل متغیرها در کد منبع `netdash.py` موجود است.
-
----
-
-## 🗂️ فایل‌ها و پِرسیستنس
-
-NetDashSelects a data path in order of priority (first writable path):
-1. `/var/lib/netdash/`
-2. `~/.local/share/netdash/`
-3. `/tmp/netdash/`
-
-فایل‌های داده‌ای در این مسیر ایجاد می‌شوند:
-- `history.json` — تاریخچهٔ لحظه‌ای نرخ دانلود/آپلود (برای نمودارها)
-- `totals.json` — مجموع ترافیک هر اینترفیس + آخرین شمارنده‌های سیستمی
-- `period_totals.json` — تجمیع روزانه/ماهانهٔ دانلود/آپلود به تفکیک اینترفیس
-- `filters.json` — اقلام بلاک‌لیست و وضعیت اعمال‌شده آن‌ها
-- `blocks_registry.json` — ایندکس جانبی برای نمایش/بازسازی بلوک‌ها
-- `sni-seen.log` — لاگ رویدادهای SNI مشاهده‌شده
-- `sni-index.json` — ایندکس دامنه→IPهای مشاهده‌شده (برای preseed)
-- `ports_totals.json` — مجموع دانلود/آپلود بر اساس پورت (conntrack)
-
-همچنین فایل پیکربندی dnsmasq در مسیر زیر ساخته/بازسازی می‌شود:
-- `/etc/dnsmasq.d/netdash-blocks.conf` — اتصال دامنه‌ها به ipsetها
-
----
-
-## 🔐 نکات امنیتی
-- برای درخواست‌های تغییردهنده (افزودن/حذف فیلترها، اعمال محدودیت و…)، **توکن** تنظیم کنید و از هدر `X-Auth-Token: <TOKEN>` استفاده کنید.
-- پنل را پشت فایروال یا فقط روی لوکال‌نت در دسترس بگذارید و در صورت نیاز **Reverse Proxy + TLS** قرار دهید.
-
----
-
-## 🧰 دستورات سرویس
+Clone and run:
 
 ```bash
-# وضعیت/لاگ
-sudo systemctl status netdash
-sudo journalctl -u netdash -f
+git clone https://github.com/Free-Guy-IR/Interface-Traffic-Monitoring.git
+cd Interface-Traffic-Monitoring
+python3 netdash.py
+```
 
-# شروع/توقف/ری‌استارت
+Default UI port: **18080** → open in your browser: `http://<server-ip>:18080/`
+
+---
+
+## 🔧 Post‑install: DNS service (if needed)
+
+NetDash relies on **dnsmasq** + **ipset** for domain blocking. If `dnsmasq` fails to start because **port 53 is already in use**, stop the conflicting service and point `resolv.conf` to `127.0.0.1`:
+
+```bash
+sudo systemctl disable --now systemd-resolved
+echo 'nameserver 127.0.0.1' | sudo tee /etc/resolv.conf
+sudo systemctl enable --now dnsmasq
+```
+
+The installer can perform these steps for you when you choose the relevant menu item.
+
+---
+
+## 🧪 Service management
+
+If you used the installer, a `systemd` unit is created:
+
+```bash
+# Start/Stop/Restart
 sudo systemctl start netdash
 sudo systemctl stop netdash
 sudo systemctl restart netdash
+
+# Status & logs
+systemctl status netdash
+journalctl -u netdash -f
+```
+
+You can also use the installer’s menu to **Start/Stop**, **View logs**, **Reinstall/Update**, or **Remove** NetDash entirely.
+
+---
+
+## 🔐 Security (control API)
+
+For control endpoints (e.g., interface up/down, shaping) set a token:
+
+- Set environment variable **`NETDASH_TOKEN="your-secret"`**.
+- The UI/JS sends this token via header `X-Auth-Token` for protected routes.
+
+Without a token, read‑only endpoints remain accessible; control endpoints will reject unauthenticated requests.
+
+---
+
+## ⚙️ Configuration (Environment variables)
+
+You can export these before running NetDash or add them to the `systemd` service:
+
+| Variable | Default | Meaning |
+|---|---:|---|
+| `NETDASH_MAX_POINTS` | `120` | Max chart points kept in the browser. |
+| `NETDASH_PORT` | `18080` | Web UI HTTP port. |
+| `NETDASH_BLOCK_PORT` | `18081` | Local HTTP block‑page port (for redirecting blocked HTTP). |
+| `NETDASH_FLUSH_SETS_ON_REMOVE` | `1` | Flush ipsets when removing the last domain. |
+| `NETDASH_IPSET_MODE` | `1` | Use `dnsmasq`+`ipset` backend (recommended). |
+| `NETDASH_SNI_BLOCK` | `1` | Add SNI‑based drop rules (TLS ClientHello string match). |
+| `NETDASH_PAGE_MODE` | `1` | Redirect blocked HTTP (port 80) to the local block page. |
+| `NETDASH_SNI_LEARN` | `1` | Learn live server IPs from TLS traffic and add to ipsets. |
+| `NETDASH_SNI_IFACES` | `` | CSV of interfaces to sniff for SNI learning (empty = all). |
+| `NETDASH_ENFORCE_DNS` | `1` | Add NAT rules to force LAN DNS to local resolver. |
+| `NETDASH_BLOCK_DOT` | `0` | Block DoT/DoQ (853/8853). |
+| `NETDASH_PRELOAD_META` | `0` | Add a small default block list on bootstrap. |
+| `NETDASH_AUTO_PIP` | `1` | Auto‑install `scapy` for SNI learning if missing. |
+| `NETDASH_TOKEN` | `` | **Control token** required by privileged endpoints. |
+| `NETDASH_DENY` | `` | CSV of interfaces **not** allowed to control. |
+| `NETDASH_ALLOW` | `` | CSV of interfaces explicitly allowed (overrides deny). |
+| `NETDASH_IPSET4` | `nd-bl4` | IPv4 global ipset (drop). |
+| `NETDASH_IPSET6` | `nd-bl6` | IPv6 global ipset (drop). |
+| `NETDASH_IPSET4_PAGE` | `ndp-bl4` | IPv4 ipset for HTTP redirect. |
+| `NETDASH_IPSET6_PAGE` | `ndp-bl6` | IPv6 ipset for HTTP redirect. |
+| `NETDASH_IPSET_TIMEOUT` | `3600` | ipset timeout in seconds. |
+| `NETDASH_PORTS_MONITOR` | `1` | Enable conntrack‑based live traffic by port. |
+| `NETDASH_PORTS_INTERVAL` | `1.0` | Polling interval (seconds) for ports monitor. |
+
+---
+
+## 💾 Data files (persisted)
+
+NetDash picks the first writable base dir in the following order:
+
+1. `/var/lib/netdash`
+2. `~/.local/share/netdash`
+3. `/tmp/netdash`
+
+Inside that directory, these files are created/used:
+
+| File | Purpose |
+|---|---|
+| `history.json` | Per‑interface time series (for the charts). |
+| `totals.json` | Byte counters & last read positions for each interface. |
+| `period_totals.json` | Aggregated daily & monthly usage. |
+| `filters.json` | Your block list entries (domain/IP/CIDR, per‑iface, page mode, realized IPs, SNI rules metadata). |
+| `blocks_registry.json` | Consolidated view of active blocks and their realized IPs (v4/v6). |
+| `sni-seen.log` | Line‑by‑line log of SNI discoveries (host ⇄ dst IP). |
+| `sni-index.json` | Compact index of domains/subs to learned IPs (used to preseed ipsets). |
+| `ports_totals.json` | Accumulators for per‑port usage (for the “Live by Port” table). |
+
+You can safely delete these files to reset state; NetDash will recreate them as needed.
+
+---
+
+## ❗ Troubleshooting
+
+**`dnsmasq` fails to start (port 53 in use):**
+```text
+dnsmasq: failed to create listening socket for port 53: Address already in use
+```
+Fix:
+```bash
+sudo systemctl disable --now systemd-resolved
+echo 'nameserver 127.0.0.1' | sudo tee /etc/resolv.conf
+sudo systemctl enable --now dnsmasq
+```
+
+**Iptables/ipset modules missing:** the app tries to `modprobe` required modules (`xt_string`, `ifb`). Ensure your kernel provides them or install headers/modules.
+
+**No traffic in the “Live by Port” table:** make sure `conntrack` is installed and accounting is enabled. NetDash tries to enable it:
+```bash
+sudo sysctl -w net.netfilter.nf_conntrack_acct=1
 ```
 
 ---
 
-## 🩺    Troubleshooting
+## 🗑️ Uninstall
 
-- **dnsmasq روی پورت 53 بالا نمی‌آید (port in use):**‌
-  ```bash
-  sudo systemctl disable --now systemd-resolved
-  echo 'nameserver 127.0.0.1' | sudo tee /etc/resolv.conf
-  sudo systemctl enable --now dnsmasq
-  sudo systemctl restart dnsmasq && systemctl status dnsmasq
-  ```
-- **قوانین iptables اعمال نمی‌شود:** مطمئن شوید کاربر اجازهٔ sudo بدون پسورد برای دستورات شبکه را دارد یا برنامه را با کاربر روت اجرا کنید.
-- **لاگ سرویس را ببینید:** `journalctl -u netdash -f`
-- **پورت پنل باز نیست:** فایروال سیستم یا Cloud/Provider را بررسی کنید (پورت پیش‌فرض 18080).
+Use the installer menu → **Remove NetDash completely**. It will stop the service, remove files, and clean up.
 
----
+Manual:
+```bash
+sudo systemctl disable --now netdash
+sudo rm -f /etc/systemd/system/netdash.service
+sudo systemctl daemon-reload
+# Optional: remove persisted data
+sudo rm -rf /var/lib/netdash ~/.local/share/netdash /tmp/netdash
+```
 
-## 👨‍💻 توسعه
-
-- کد اصلی: [`netdash.py`](https://github.com/Free-Guy-IR/Interface-Traffic-Monitoring/blob/main/netdash.py)
-- اسکریپت نصب: [`netdash-install.sh`](https://github.com/Free-Guy-IR/Interface-Traffic-Monitoring/blob/main/netdash-install.sh)
-
-پیشنهاد/باگ‌ریپورت‌ها را در Issues ثبت کنید 🌟
+> If you had `dnsmasq` installed solely for NetDash and don’t need it anymore:
+```bash
+sudo systemctl disable --now dnsmasq
+sudo apt-get purge -y dnsmasq-base dnsmasq
+```
 
 ---
 
-## 💖 حمایت
-اگر NetDash برایتان مفید بود، لطفاً با ⭐️ دادن به مخزن از پروژه حمایت کنید.
+## 📜 License
+
+MIT — see `LICENSE` if provided in the repository.
+
+---
+
+## 🙌 Star the project
+
+If NetDash helps you, please consider giving the repo a ⭐ on GitHub.
