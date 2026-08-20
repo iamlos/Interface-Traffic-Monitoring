@@ -3,9 +3,8 @@
 </div>
 <br>
 
-# NetDash — داشبورد مانیتورینگ و کنترل ترافیک شبکه
-
-یک پنل سبک، بدون دیتابیس و تمام‌خودکار برای **مشاهدهٔ زنده‌ی ترافیک شبکه، محدودسازی پهنای‌باند، مسدودسازی دامنه/IP، مانیتور پینگ** و خیلی چیزهای دیگر. مناسب برای **سرورهای VPN، روترهای خانگی/سازمانی، دفاتر و تیم‌های کوچک**.
+# NetDash — Network traffic monitoring and control dashboard
+A lightweight, database-free, fully automated panel for **live network traffic monitoring, bandwidth throttling, domain/IP blocking, ping monitoring** and much more. Suitable for **VPN servers, home/corporate routers, offices and small teams**.
 
 ---
 <img width="1256" height="616" alt="Screenshot (165)" src="https://github.com/user-attachments/assets/0ed26721-bd57-4613-926d-9666bbc4a912" />
